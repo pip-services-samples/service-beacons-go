@@ -1,9 +1,9 @@
 package build
 
 import (
-	blogic "github.com/pip-services-samples/pip-data-microservice-go/logic"
-	bpersist "github.com/pip-services-samples/pip-data-microservice-go/persistence"
-	bservices "github.com/pip-services-samples/pip-data-microservice-go/services/version1"
+	blogic "github.com/pip-services-samples/pip-services-beacons-go/logic"
+	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	bservices "github.com/pip-services-samples/pip-services-beacons-go/services/version1"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	cbuild "github.com/pip-services3-go/pip-services3-components-go/build"
 )

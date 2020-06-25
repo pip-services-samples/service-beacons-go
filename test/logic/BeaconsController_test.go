@@ -3,9 +3,9 @@ package test_logic
 import (
 	"testing"
 
-	bdata "github.com/pip-services-samples/pip-data-microservice-go/data/version1"
-	blogic "github.com/pip-services-samples/pip-data-microservice-go/logic"
-	bpersist "github.com/pip-services-samples/pip-data-microservice-go/persistence"
+	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	blogic "github.com/pip-services-samples/pip-services-beacons-go/logic"
+	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"

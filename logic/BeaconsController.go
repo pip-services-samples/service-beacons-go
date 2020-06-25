@@ -1,8 +1,8 @@
 package logic
 
 import (
-	bdata "github.com/pip-services-samples/pip-data-microservice-go/data/version1"
-	bpersist "github.com/pip-services-samples/pip-data-microservice-go/persistence"
+	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
 	ccomand "github.com/pip-services3-go/pip-services3-commons-go/commands"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"

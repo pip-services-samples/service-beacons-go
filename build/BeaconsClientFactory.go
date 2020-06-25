@@ -1,7 +1,7 @@
 package build
 
 import (
-	bclients "github.com/pip-services-samples/pip-data-microservice-go/clients/version1"
+	bclients "github.com/pip-services-samples/pip-services-beacons-go/clients/version1"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	cbuild "github.com/pip-services3-go/pip-services3-components-go/build"
 )

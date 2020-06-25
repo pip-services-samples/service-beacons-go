@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	bdata "github.com/pip-services-samples/pip-data-microservice-go/data/version1"
-	data "github.com/pip-services-samples/pip-data-microservice-go/data/version1"
+	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	data "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	mngpersist "github.com/pip-services3-go/pip-services3-mongodb-go/persistence"
 	"go.mongodb.org/mongo-driver/bson"

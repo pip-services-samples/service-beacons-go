@@ -3,8 +3,8 @@ package test_persistence
 import (
 	"testing"
 
-	bdata "github.com/pip-services-samples/pip-data-microservice-go/data/version1"
-	bpersist "github.com/pip-services-samples/pip-data-microservice-go/persistence"
+	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	"github.com/stretchr/testify/assert"
 )

@@ -1,7 +1,7 @@
 package container
 
 import (
-	bfactory "github.com/pip-services-samples/pip-data-microservice-go/build"
+	bfactory "github.com/pip-services-samples/pip-services-beacons-go/build"
 	cproc "github.com/pip-services3-go/pip-services3-container-go/container"
 	rpcbuild "github.com/pip-services3-go/pip-services3-rpc-go/build"
 )

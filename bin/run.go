@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	bproc "github.com/pip-services-samples/pip-data-microservice-go/container"
+	bproc "github.com/pip-services-samples/pip-services-beacons-go/container"
 )
 
 func main() {
