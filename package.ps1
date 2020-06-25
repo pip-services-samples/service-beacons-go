@@ -3,7 +3,7 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = "Stop"
 
-$image="data-microservice:1.0-0-rc"
+$image="pipdevs/pipdevs/pip-services-beacons-go:1.0"
 
 # Build docker image
 docker build -f docker/Dockerfile -t $image .
