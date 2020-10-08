@@ -104,7 +104,7 @@ func (c *BeaconsController) CreateBeacon(correlationId string, beacon bdata.Beac
 	}
 
 	if beacon.Type == "" {
-		beacon.Type = bdata.BeaconTypeV1.Unknown
+		beacon.Type = bdata.Unknown
 	}
 
 	return c.persistence.Create(correlationId, beacon)
@@ -113,7 +113,7 @@ func (c *BeaconsController) CreateBeacon(correlationId string, beacon bdata.Beac
 func (c *BeaconsController) UpdateBeacon(correlationId string, beacon bdata.BeaconV1) (res *bdata.BeaconV1, err error) {
 
 	if beacon.Type == "" {
-		beacon.Type = bdata.BeaconTypeV1.Unknown
+		beacon.Type = bdata.Unknown
 	}
 
 	return c.persistence.Update(correlationId, beacon)
