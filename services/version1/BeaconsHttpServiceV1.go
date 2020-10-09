@@ -10,9 +10,9 @@ type BeaconsHttpServiceV1 struct {
 }
 
 func NewBeaconsHttpServiceV1() *BeaconsHttpServiceV1 {
-	bchs := BeaconsHttpServiceV1{
+	c := BeaconsHttpServiceV1{
 		CommandableHttpService: rpcservices.NewCommandableHttpService("v1/beacons"),
 	}
-	bchs.DependencyResolver.Put("controller", cref.NewDescriptor("beacons", "controller", "*", "*", "1.0"))
-	return &bchs
+	c.DependencyResolver.Put("controller", cref.NewDescriptor("beacons", "controller", "*", "*", "1.0"))
+	return &c
 }
