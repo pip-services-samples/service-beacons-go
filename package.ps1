@@ -3,10 +3,13 @@
 Set-StrictMode -Version latest
 $ErrorActionPreference = "Stop"
 
-$image="pipdevs/pipdevs/pip-services-beacons-go:1.0"
+# Generate image names using the data in the "component.json" file
+$component = Get-Content -Path "component.json" | ConvertFrom-Json
+$image="$($component.registry)/$($component.name):$($component.version)-$($component.build)-rc"
+$latestImage="$($component.registry)/$($component.name):latest"
 
 # Build docker image
-docker build -f docker/Dockerfile -t $image .
+docker build -f docker/Dockerfile -t $image -t $latestImage .
 
 # Set environment variables
 $env:IMAGE = $image
@@ -17,15 +20,16 @@ try {
 
     docker-compose -f ./docker/docker-compose.yml up -d
 
-    Start-Sleep -Seconds 15
+    # Give the service time to start and then check that it's responding to requests
+    Start-Sleep -Seconds 10
     Invoke-WebRequest -Uri http://localhost:8080/heartbeat
     Invoke-WebRequest -Uri http://localhost:8080/v1/beacons/get_beacons -Method Post
 
     Write-Host "The container was successfully built."
-    
-    # Save the result to avoid overwriting it with the "down" command below
-    $exitCode = $LastExitCode 
 } finally {
+    # Save the "try" result to avoid overwriting it with the "down" command below
+    $exitCode = $LastExitCode 
+
     docker-compose -f ./docker/docker-compose.yml down
 }
 

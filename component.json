@@ -1,0 +1,6 @@
+{
+    "name": "pip-services-beacons-go",
+    "registry": "pipdevs/pipdevs",
+    "version": "1.0",
+    "build": "0"
+}

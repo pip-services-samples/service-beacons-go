@@ -2,7 +2,8 @@ npm-debug.log*
 /.idea
 /node_modules
 /dist
-/obj
+/obj/*
 /data/*.json
 /.vscode
 /go.sum
+/exe/*
