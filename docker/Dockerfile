@@ -1,14 +1,13 @@
-# Start with the golang v1.13 image
-FROM golang:1.13
+# Start with the scratch image
+FROM scratch
 
 # Set a working directory
-WORKDIR /go/src/app
+# RUN mkdir /app
+WORKDIR /app
 
 # Copy the entire project
-COPY . .
-# Install all go_modules
-RUN go get -d -v ./...
-RUN go install -v ./...
+COPY ./exe ./bin
+COPY ./config ./config
 
 # Set environment variables
 ENV HTTP_PORT=8080
@@ -19,5 +18,4 @@ ENV MONGO_SERVICE_PORT=27017
 EXPOSE "8080:8080"
 
 # Specify the command to run
-
-CMD ["bin"]
+CMD ["./bin/app"]
