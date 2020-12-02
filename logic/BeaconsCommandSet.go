@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	ccomand "github.com/pip-services3-go/pip-services3-commons-go/commands"
+	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	ccmd "github.com/pip-services3-go/pip-services3-commons-go/commands"
 	cconv "github.com/pip-services3-go/pip-services3-commons-go/convert"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	crun "github.com/pip-services3-go/pip-services3-commons-go/run"
@@ -13,27 +13,29 @@ import (
 )
 
 type BeaconsCommandSet struct {
-	ccomand.CommandSet
+	ccmd.CommandSet
 	controller IBeaconsController
 }
 
 func NewBeaconsCommandSet(controller IBeaconsController) *BeaconsCommandSet {
+	c := &BeaconsCommandSet{
+		CommandSet: *ccmd.NewCommandSet(),
+		controller: controller,
+	}
 
-	bcs := BeaconsCommandSet{}
-	bcs.CommandSet = *ccomand.NewCommandSet()
-	bcs.controller = controller
-	bcs.AddCommand(bcs.makeGetBeaconsCommand())
-	bcs.AddCommand(bcs.makeGetBeaconByIdCommand())
-	bcs.AddCommand(bcs.makeGetBeaconByUdiCommand())
-	bcs.AddCommand(bcs.makeCalculatePositionCommand())
-	bcs.AddCommand(bcs.makeCreateBeaconCommand())
-	bcs.AddCommand(bcs.makeUpdateBeaconCommand())
-	bcs.AddCommand(bcs.makeDeleteBeaconByIdCommand())
-	return &bcs
+	c.AddCommand(c.makeGetBeaconsCommand())
+	c.AddCommand(c.makeGetBeaconByIdCommand())
+	c.AddCommand(c.makeGetBeaconByUdiCommand())
+	c.AddCommand(c.makeCalculatePositionCommand())
+	c.AddCommand(c.makeCreateBeaconCommand())
+	c.AddCommand(c.makeUpdateBeaconCommand())
+	c.AddCommand(c.makeDeleteBeaconByIdCommand())
+
+	return c
 }
 
-func (c *BeaconsCommandSet) makeGetBeaconsCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeGetBeaconsCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"get_beacons",
 		cvalid.NewObjectSchema().
 			WithOptionalProperty("filter", cvalid.NewFilterParamsSchema()).
@@ -45,8 +47,8 @@ func (c *BeaconsCommandSet) makeGetBeaconsCommand() ccomand.ICommand {
 		})
 }
 
-func (c *BeaconsCommandSet) makeGetBeaconByIdCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeGetBeaconByIdCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"get_beacon_by_id",
 		cvalid.NewObjectSchema().
 			WithRequiredProperty("beacon_id", cconv.String),
@@ -56,8 +58,8 @@ func (c *BeaconsCommandSet) makeGetBeaconByIdCommand() ccomand.ICommand {
 		})
 }
 
-func (c *BeaconsCommandSet) makeGetBeaconByUdiCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeGetBeaconByUdiCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"get_beacon_by_udi",
 		cvalid.NewObjectSchema().
 			WithRequiredProperty("udi", cconv.String),
@@ -67,12 +69,12 @@ func (c *BeaconsCommandSet) makeGetBeaconByUdiCommand() ccomand.ICommand {
 		})
 }
 
-func (c *BeaconsCommandSet) makeCalculatePositionCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeCalculatePositionCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"calculate_position",
 		cvalid.NewObjectSchema().
 			WithRequiredProperty("site_id", cconv.String).
-			WithRequiredProperty("udis", cvalid.NewArraySchema(cconv.String)), //cconv.String),
+			WithRequiredProperty("udis", cvalid.NewArraySchema(cconv.String)),
 		func(correlationId string, args *crun.Parameters) (result interface{}, err error) {
 			siteId := args.GetAsString("site_id")
 			udis := args.GetAsString("udis")
@@ -82,35 +84,38 @@ func (c *BeaconsCommandSet) makeCalculatePositionCommand() ccomand.ICommand {
 		})
 }
 
-func (c *BeaconsCommandSet) makeCreateBeaconCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeCreateBeaconCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"create_beacon",
 		cvalid.NewObjectSchema().
-			WithRequiredProperty("beacon", bdata.NewBeaconV1Schema()),
+			WithRequiredProperty("beacon", data1.NewBeaconV1Schema()),
 		func(correlationId string, args *crun.Parameters) (result interface{}, err error) {
-			val, _ := json.Marshal(args.Get("beacon"))
-			var beacon bdata.BeaconV1
-			json.Unmarshal(val, &beacon)
 
-			return c.controller.CreateBeacon(correlationId, beacon)
+			val, errJ := json.Marshal(args.Get("beacon"))
+			var beacon data1.BeaconV1 = data1.BeaconV1{}
+			errJ = json.Unmarshal(val, &beacon)
+			if errJ != nil {
+				return nil, errJ
+			}
+			return c.controller.CreateBeacon(correlationId, &beacon)
 		})
 }
 
-func (c *BeaconsCommandSet) makeUpdateBeaconCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeUpdateBeaconCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"update_beacon",
 		cvalid.NewObjectSchema().
-			WithRequiredProperty("beacon", bdata.NewBeaconV1Schema()),
+			WithRequiredProperty("beacon", data1.NewBeaconV1Schema()),
 		func(correlationId string, args *crun.Parameters) (result interface{}, err error) {
 			val, _ := json.Marshal(args.Get("beacon"))
-			var beacon bdata.BeaconV1
+			var beacon data1.BeaconV1
 			json.Unmarshal(val, &beacon)
-			return c.controller.UpdateBeacon(correlationId, beacon)
+			return c.controller.UpdateBeacon(correlationId, &beacon)
 		})
 }
 
-func (c *BeaconsCommandSet) makeDeleteBeaconByIdCommand() ccomand.ICommand {
-	return ccomand.NewCommand(
+func (c *BeaconsCommandSet) makeDeleteBeaconByIdCommand() ccmd.ICommand {
+	return ccmd.NewCommand(
 		"delete_beacon_by_id",
 		cvalid.NewObjectSchema().
 			WithRequiredProperty("beacon_id", cconv.String),

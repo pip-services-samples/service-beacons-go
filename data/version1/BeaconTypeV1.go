@@ -1,8 +1,6 @@
-package data
+package data1
 
-const (
-	Unknown      = "unknown"
-	AltBeacon    = "altbeacon"
-	IBeacon      = "ibeacon"
-	EddyStoneUdi = "eddystone-udi"
-)
+const Unknown = "unknown"
+const AltBeacon = "altbeacon"
+const IBeacon = "ibeacon"
+const EddyStoneUdi = "eddystone-udi"

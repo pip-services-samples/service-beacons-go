@@ -1,0 +1,10 @@
+# Start with the golang v1.13 image
+FROM golang:1.13
+
+WORKDIR /app
+
+COPY . ./src
+
+ENTRYPOINT godoc -http=0.0.0.0:6060 -v -goroot=. 
+
+

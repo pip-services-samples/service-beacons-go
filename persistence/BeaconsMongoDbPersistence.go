@@ -62,7 +62,7 @@ func (c *BeaconsMongoDbPersistence) composeFilter(filter *cdata.FilterParams) in
 	return bson.M{}
 }
 
-func (c *BeaconsMongoDbPersistence) Create(correlationId string, item bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
+func (c *BeaconsMongoDbPersistence) Create(correlationId string, item *bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
 	value, err := c.IdentifiableMongoDbPersistence.Create(correlationId, item)
 
 	if value != nil {
@@ -95,7 +95,7 @@ func (c *BeaconsMongoDbPersistence) GetOneById(correlationId string, id string) 
 	return item, err
 }
 
-func (c *BeaconsMongoDbPersistence) Update(correlationId string, item bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
+func (c *BeaconsMongoDbPersistence) Update(correlationId string, item *bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
 	value, err := c.IdentifiableMongoDbPersistence.Update(correlationId, item)
 	if value != nil {
 		val, _ := value.(*bdata.BeaconV1)
@@ -149,7 +149,7 @@ func (c *BeaconsMongoDbPersistence) GetPageByFilter(correlationId string, filter
 func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string) (result *bdata.BeaconV1, err error) {
 
 	filter := bson.M{"udi": udi}
-	docPointer := c.GetProtoPtr()
+	docPointer := c.NewObjectByPrototype()
 	foRes := c.Collection.FindOne(c.Connection.Ctx, filter)
 	ferr := foRes.Decode(docPointer.Interface())
 	if ferr != nil {
@@ -158,7 +158,7 @@ func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string
 		}
 		return nil, ferr
 	}
-	item := c.GetConvResult(docPointer, c.Prototype)
+	item := c.ConvertResultToPublic(docPointer, c.Prototype)
 
 	if item != nil {
 		val, _ := item.(*bdata.BeaconV1)

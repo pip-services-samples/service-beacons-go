@@ -4,21 +4,22 @@ import (
 	"reflect"
 	"strings"
 
-	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
-	cmperist "github.com/pip-services3-go/pip-services3-data-go/persistence"
+	cpersist "github.com/pip-services3-go/pip-services3-data-go/persistence"
 )
 
 type BeaconsMemoryPersistence struct {
-	cmperist.IdentifiableMemoryPersistence
+	cpersist.IdentifiableMemoryPersistence
 }
 
 func NewBeaconsMemoryPersistence() *BeaconsMemoryPersistence {
-	proto := reflect.TypeOf(&bdata.BeaconV1{})
-	bmp := BeaconsMemoryPersistence{}
-	bmp.IdentifiableMemoryPersistence = *cmperist.NewIdentifiableMemoryPersistence(proto)
-	//bmp.MaxPageSize = 1000
-	return &bmp
+	proto := reflect.TypeOf(&data1.BeaconV1{})
+	c := BeaconsMemoryPersistence{
+		IdentifiableMemoryPersistence: *cpersist.NewIdentifiableMemoryPersistence(proto),
+	}
+	c.MaxPageSize = 1000
+	return &c
 }
 
 func (c *BeaconsMemoryPersistence) composeFilter(filter *cdata.FilterParams) func(beacon interface{}) bool {
@@ -32,20 +33,20 @@ func (c *BeaconsMemoryPersistence) composeFilter(filter *cdata.FilterParams) fun
 	udi := filter.GetAsString("udi")
 	udis := filter.GetAsString("udis")
 
-	var arrUdis []string = make([]string, 0, 0)
+	var udiValues []string
 	if udis != "" {
-		arrUdis = strings.Split(udis, ",")
+		udiValues = strings.Split(udis, ",")
 	}
 
 	return func(beacon interface{}) bool {
-		item, ok := beacon.(bdata.BeaconV1)
+		item, ok := beacon.(data1.BeaconV1)
 		if !ok {
 			return false
 		}
 		if id != "" && item.Id != id {
 			return false
 		}
-		if siteId != "" && item.Site_id != siteId {
+		if siteId != "" && item.SiteId != siteId {
 			return false
 		}
 		if label != "" && item.Label != label {
@@ -54,101 +55,47 @@ func (c *BeaconsMemoryPersistence) composeFilter(filter *cdata.FilterParams) fun
 		if udi != "" && item.Udi != udi {
 			return false
 		}
-		if len(arrUdis) > 0 && strings.Index(udis, item.Udi) < 0 {
+		if len(udiValues) > 0 && strings.Index(udis, item.Udi) < 0 {
 			return false
 		}
 		return true
 	}
 }
 
-func (c *BeaconsMemoryPersistence) Create(correlationId string, item bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
-	value, err := c.IdentifiableMemoryPersistence.Create(correlationId, item)
-	if value != nil {
-		val, _ := value.(*bdata.BeaconV1)
-		result = val
-	}
-	return result, err
-}
+func (c *BeaconsMemoryPersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (*data1.BeaconV1DataPage, error) {
+	tempPage, err := c.IdentifiableMemoryPersistence.GetPageByFilter(correlationId, c.composeFilter(filter), paging, nil, nil)
 
-func (c *BeaconsMemoryPersistence) GetListByIds(correlationId string, ids []string) (items []bdata.BeaconV1, err error) {
-	convIds := make([]interface{}, len(ids))
-	for i, v := range ids {
-		convIds[i] = v
+	if tempPage == nil || err != nil {
+		return nil, err
 	}
-	result, err := c.IdentifiableMemoryPersistence.GetListByIds(correlationId, convIds)
-	items = make([]bdata.BeaconV1, len(result))
-	for i, v := range result {
-		val, _ := v.(bdata.BeaconV1)
-		items[i] = val
-	}
-	return items, err
-}
 
-func (c *BeaconsMemoryPersistence) GetOneById(correlationId string, id string) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMemoryPersistence.GetOneById(correlationId, id)
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMemoryPersistence) Update(correlationId string, item bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
-	value, err := c.IdentifiableMemoryPersistence.Update(correlationId, item)
-	if value != nil {
-		val, _ := value.(*bdata.BeaconV1)
-		result = val
-	}
-	return result, err
-}
-
-func (c *BeaconsMemoryPersistence) UpdatePartially(correlationId string, id string, data *cdata.AnyValueMap) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMemoryPersistence.UpdatePartially(correlationId, id, data)
-
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMemoryPersistence) DeleteById(correlationId string, id string) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMemoryPersistence.DeleteById(correlationId, id)
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMemoryPersistence) DeleteByIds(correlationId string, ids []string) (err error) {
-	convIds := make([]interface{}, len(ids))
-	for i, v := range ids {
-		convIds[i] = v
-	}
-	return c.IdentifiableMemoryPersistence.DeleteByIds(correlationId, convIds)
-}
-
-func (c *BeaconsMemoryPersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *bdata.BeaconV1DataPage, err error) {
-	tempPage, resErr := c.IdentifiableMemoryPersistence.GetPageByFilter(correlationId, c.composeFilter(filter), paging, nil, nil)
-	if resErr != nil {
-		return nil, resErr
-	}
 	// Convert to BeaconV1DataPage
-	dataLen := int64(len(tempPage.Data)) // For full release tempPage and delete this by GC
-	beaconData := make([]*bdata.BeaconV1, dataLen)
+	dataLen := len(tempPage.Data)
+	data := make([]*data1.BeaconV1, dataLen)
 	for i, v := range tempPage.Data {
-		beaconData[i] = v.(*bdata.BeaconV1)
+		data[i] = v.(*data1.BeaconV1)
 	}
-	page = bdata.NewBeaconV1DataPage(&dataLen, beaconData)
+	page := data1.NewBeaconV1DataPage(tempPage.Total, data)
+
 	return page, nil
 }
 
-func (c *BeaconsMemoryPersistence) GetOneByUdi(correlationId string, udi string) (res *bdata.BeaconV1, err error) {
+func (c *BeaconsMemoryPersistence) GetOneById(correlationId string, id string) (*data1.BeaconV1, error) {
+	result, err := c.IdentifiableMemoryPersistence.GetOneById(correlationId, id)
 
-	var item *bdata.BeaconV1
+	if result == nil || err != nil {
+		return nil, err
+	}
+
+	// Convert to BeaconV1
+	item, _ := result.(*data1.BeaconV1)
+	return item, err
+}
+
+func (c *BeaconsMemoryPersistence) GetOneByUdi(correlationId string, udi string) (*data1.BeaconV1, error) {
+	var item *data1.BeaconV1
 	for _, v := range c.Items {
-		if buf, ok := v.(bdata.BeaconV1); ok {
+		if buf, ok := v.(data1.BeaconV1); ok {
 			if buf.Udi == udi {
 				item = &buf
 				break
@@ -162,5 +109,41 @@ func (c *BeaconsMemoryPersistence) GetOneByUdi(correlationId string, udi string)
 		c.Logger.Trace(correlationId, "Cannot find beacon by %s", udi)
 	}
 
+	return item, nil
+}
+
+func (c *BeaconsMemoryPersistence) Create(correlationId string, item *data1.BeaconV1) (*data1.BeaconV1, error) {
+	value, err := c.IdentifiableMemoryPersistence.Create(correlationId, item)
+
+	if value == nil || err != nil {
+		return nil, err
+	}
+
+	// Convert to BeaconV1
+	result, _ := value.(*data1.BeaconV1)
+	return result, nil
+}
+
+func (c *BeaconsMemoryPersistence) Update(correlationId string, item *data1.BeaconV1) (*data1.BeaconV1, error) {
+	value, err := c.IdentifiableMemoryPersistence.Update(correlationId, item)
+
+	if value == nil || err != nil {
+		return nil, err
+	}
+
+	// Convert to BeaconV1
+	result, _ := value.(*data1.BeaconV1)
+	return result, nil
+}
+
+func (c *BeaconsMemoryPersistence) DeleteById(correlationId string, id string) (*data1.BeaconV1, error) {
+	result, err := c.IdentifiableMemoryPersistence.DeleteById(correlationId, id)
+
+	if result == nil || err != nil {
+		return nil, err
+	}
+
+	// Convert to BeaconV1
+	item, _ := result.(*data1.BeaconV1)
 	return item, nil
 }

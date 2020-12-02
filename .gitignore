@@ -6,5 +6,4 @@ npm-debug.log*
 /data/*.json
 /.vscode
 /go.sum
-/exe/*
 /temp
