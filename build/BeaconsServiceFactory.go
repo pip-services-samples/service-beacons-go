@@ -17,16 +17,16 @@ func NewBeaconsServiceFactory() *BeaconsServiceFactory {
 		Factory: *cbuild.NewFactory(),
 	}
 
-	memoryPersistenceDescriptor := cref.NewDescriptor("beacons", "persistence", "memory", "*", "1.0")
-	filePersistenceDescriptor := cref.NewDescriptor("beacons", "persistence", "file", "*", "1.0")
-	postgresDbPersistenceDescriptor := cref.NewDescriptor("beacons", "persistence", "postgres", "*", "1.0")
-	jsonPostgresDbPersistenceDescriptor := cref.NewDescriptor("beacons", "persistence", "json-postgres", "*", "1.0")
-	mongoDbPersistenceDescriptor := cref.NewDescriptor("beacons", "persistence", "mongodb", "*", "1.0")
-	controllerDescriptor := cref.NewDescriptor("beacons", "controller", "default", "*", "1.0")
-	cmdHttpServiceV1Descriptor := cref.NewDescriptor("beacons", "service", "commandable-http", "*", "1.0")
-	cmdGrpcServiceV1Descriptor := cref.NewDescriptor("beacons", "service", "commandable-grpc", "*", "1.0")
-	httpServiceV1Descriptor := cref.NewDescriptor("beacons", "service", "http", "*", "1.0")
-	grpcServiceV1Descriptor := cref.NewDescriptor("beacons", "service", "grpc", "*", "1.0")
+	memoryPersistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "*", "1.0")
+	filePersistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", "file", "*", "1.0")
+	postgresDbPersistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", "postgres", "*", "1.0")
+	jsonPostgresDbPersistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", "json-postgres", "*", "1.0")
+	mongoDbPersistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", "mongodb", "*", "1.0")
+	controllerDescriptor := cref.NewDescriptor("pip-services-beacons", "controller", "default", "*", "1.0")
+	cmdHttpServiceV1Descriptor := cref.NewDescriptor("pip-services-beacons", "service", "commandable-http", "*", "1.0")
+	cmdGrpcServiceV1Descriptor := cref.NewDescriptor("pip-services-beacons", "service", "commandable-grpc", "*", "1.0")
+	httpServiceV1Descriptor := cref.NewDescriptor("pip-services-beacons", "service", "http", "*", "1.0")
+	grpcServiceV1Descriptor := cref.NewDescriptor("pip-services-beacons", "service", "grpc", "*", "1.0")
 
 	c.RegisterType(memoryPersistenceDescriptor, persist.NewBeaconsMemoryPersistence)
 	c.RegisterType(filePersistenceDescriptor, persist.NewBeaconsFilePersistence)

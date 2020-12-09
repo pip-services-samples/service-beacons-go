@@ -14,7 +14,7 @@ func NewBeaconsCommandableHttpServiceV1() *BeaconsCommandableHttpServiceV1 {
 		CommandableHttpService: cservices.NewCommandableHttpService("v1/beacons"),
 	}
 	c.CommandableHttpService.IRegisterable = c
-	c.DependencyResolver.Put("controller", cref.NewDescriptor("beacons", "controller", "*", "*", "1.0"))
+	c.DependencyResolver.Put("controller", cref.NewDescriptor("pip-services-beacons", "controller", "*", "*", "1.0"))
 	return c
 }
 

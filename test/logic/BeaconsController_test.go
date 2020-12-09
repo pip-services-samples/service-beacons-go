@@ -47,8 +47,8 @@ func newBeaconsControllerTest() *beaconsControllerTest {
 	controller.Configure(cconf.NewEmptyConfigParams())
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
-		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
+		cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "default", "1.0"), persistence,
+		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), controller,
 	)
 
 	controller.SetReferences(references)

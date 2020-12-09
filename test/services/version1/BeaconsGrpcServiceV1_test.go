@@ -60,9 +60,9 @@ func newBeaconsGrpcServiceV1Test() *beaconsGrpcServiceV1Test {
 	))
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
-		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
-		cref.NewDescriptor("beacons", "service", "http", "default", "1.0"), service,
+		cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "default", "1.0"), persistence,
+		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), controller,
+		cref.NewDescriptor("pip-services-beacons", "service", "http", "default", "1.0"), service,
 	)
 
 	controller.SetReferences(references)

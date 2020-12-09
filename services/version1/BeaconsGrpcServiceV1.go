@@ -20,7 +20,7 @@ func NewBeaconsGrpcServiceV1() *BeaconsGrpcServiceV1 {
 		GrpcService: cservices.NewGrpcService("beacons_v1.BeaconsV1"),
 	}
 	c.GrpcService.IRegisterable = c
-	c.DependencyResolver.Put("controller", cref.NewDescriptor("beacons", "controller", "default", "*", "*"))
+	c.DependencyResolver.Put("controller", cref.NewDescriptor("pip-services-beacons", "controller", "default", "*", "*"))
 	return c
 }
 

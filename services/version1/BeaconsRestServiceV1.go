@@ -25,7 +25,7 @@ func NewBeaconsRestServiceV1() *BeaconsRestServiceV1 {
 	c.RestService.IRegisterable = c
 	c.BaseRoute = "v1/beacons"
 	c.openApiFile = "./swagger/beacons_v1.yaml"
-	c.DependencyResolver.Put("controller", crefer.NewDescriptor("beacons", "controller", "default", "*", "*"))
+	c.DependencyResolver.Put("controller", crefer.NewDescriptor("pip-services-beacons", "controller", "default", "*", "*"))
 	return c
 }
 

@@ -24,7 +24,7 @@ func (c *BeaconsController) Configure(config *cconf.ConfigParams) {
 }
 
 func (c *BeaconsController) SetReferences(references cref.IReferences) {
-	p, err := references.GetOneRequired(cref.NewDescriptor("beacons", "persistence", "*", "*", "1.0"))
+	p, err := references.GetOneRequired(cref.NewDescriptor("pip-services-beacons", "persistence", "*", "*", "1.0"))
 	if p != nil && err == nil {
 		c.persistence = p.(persist.IBeaconsPersistence)
 	}

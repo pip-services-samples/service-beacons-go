@@ -1,7 +1,7 @@
 ---
   # Container descriptor
   - descriptor: "pip-services:context-info:default:default:1.0"
-    name: "beacons"
+    name: "pip-services-beacons"
     description: "Beacons microservice"
   
   # Console logger
@@ -13,18 +13,18 @@
   
   {{^if MONGO_ENABLED}}{{^if POSTGRES_ENABLED}}{{^if FILE_ENABLED}}
   # Memory persistence
-  - descriptor: "beacons:persistence:memory:default:1.0"
+  - descriptor: "pip-services-beacons:persistence:memory:default:1.0"
   {{/if}}{{/if}}{{/if}}
   
   {{#if FILE_ENABLED}}
   # File persistence
-  - descriptor: "beacons:persistence:file:default:1.0"
-    path: {{FILE_PATH}}{{^if FILE_PATH}}"./data/beacons.json"{{/if}}
+  - descriptor: "pip-services-beacons:persistence:file:default:1.0"
+    path: {{FILE_PATH}}{{^if FILE_PATH}}"./data/pip-services-beacons.json"{{/if}}
   {{/if}}
   
   {{#if MONGO_ENABLED}}
   # MongoDb persistence
-  - descriptor: "beacons:persistence:mongodb:default:1.0"
+  - descriptor: "pip-services-beacons:persistence:mongodb:default:1.0"
     connection:
       uri: {{MONGO_SERVICE_URI}}
       host: {{MONGO_SERVICE_HOST}}{{^if MONGO_SERVICE_HOST}}"localhost"{{/if}}
@@ -34,7 +34,7 @@
 
   {{#if POSTGRES_ENABLED}}
   # PostreSQL Persistence
-  - descriptor: "beacons:persistence:postgres:default:1.0"
+  - descriptor: "pip-services-beacons:persistence:postgres:default:1.0"
     connection:
       uri: {{{POSTGRES_SERVICE_URI}}}
       host: {{{POSTGRES_SERVICE_HOST}}}{{#unless POSTGRES_SERVICE_HOST}}localhost{{/unless}}
@@ -47,7 +47,7 @@
   
   
   # Controller
-  - descriptor: "beacons:controller:default:default:1.0"
+  - descriptor: "pip-services-beacons:controller:default:default:1.0"
 
 {{#if HTTP_ENABLED}}
   # Shared HTTP Endpoint
@@ -58,12 +58,12 @@
       port: {{HTTP_PORT}}{{#unless HTTP_PORT}}8080{{/unless}}
 
   # HTTP Service V1
-  - descriptor: "beacons:service:commandable-http:default:1.0"
+  - descriptor: "pip-services-beacons:service:commandable-http:default:1.0"
     swagger:
       enable: true
       auto: true
       name: "Beacons Service V1"
-      description: "Sample beacons microservice"
+      description: "Sample pip-services-beacons microservice"
 
   # Hearbeat service
   - descriptor: "pip-services:heartbeat-service:http:default:1.0"
@@ -81,8 +81,8 @@
       port: {{GRPC_SERVICE_PORT}}{{#unless GRPC_SERVICE_PORT}}8090{{/unless}}
 
   # GRPC endpoint version 1.0
-  - descriptor: "beacons:service:grpc:default:1.0"
+  - descriptor: "pip-services-beacons:service:grpc:default:1.0"
 
   # Commandable GRPC endpoint version 1.0
-  - descriptor: "beacons:service:commandable-grpc:command:1.0"
+  - descriptor: "pip-services-beacons:service:commandable-grpc:command:1.0"
 {{/if}}

@@ -15,13 +15,13 @@ func NewBeaconsClientFactory() *BeaconsClientFactory {
 		Factory: *cbuild.NewFactory(),
 	}
 
-	nullClientDescriptor := cref.NewDescriptor("beacons", "client", "null", "*", "1.0")
-	directClientDescriptor := cref.NewDescriptor("beacons", "client", "direct", "*", "1.0")
-	cmdHttpClientDescriptor := cref.NewDescriptor("beacons", "client", "commandable-http", "*", "1.0")
-	cmdGrpcClientDescriptor := cref.NewDescriptor("beacons", "client", "commandable-grpc", "*", "1.0")
+	nullClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "null", "*", "1.0")
+	directClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "direct", "*", "1.0")
+	cmdHttpClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "commandable-http", "*", "1.0")
+	cmdGrpcClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "commandable-grpc", "*", "1.0")
 
-	httpClientDescriptor := cref.NewDescriptor("beacons", "client", "http", "*", "1.0")
-	grpcClientDescriptor := cref.NewDescriptor("beacons", "client", "grpc", "*", "1.0")
+	httpClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "http", "*", "1.0")
+	grpcClientDescriptor := cref.NewDescriptor("pip-services-beacons", "client", "grpc", "*", "1.0")
 
 	c.RegisterType(nullClientDescriptor, clients1.NewBeaconsNullClientV1)
 	c.RegisterType(directClientDescriptor, clients1.NewBeaconsDirectClientV1)
