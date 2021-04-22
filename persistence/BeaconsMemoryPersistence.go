@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	cpersist "github.com/pip-services3-go/pip-services3-data-go/persistence"
 )
@@ -15,11 +15,10 @@ type BeaconsMemoryPersistence struct {
 
 func NewBeaconsMemoryPersistence() *BeaconsMemoryPersistence {
 	proto := reflect.TypeOf(&data1.BeaconV1{})
-	c := BeaconsMemoryPersistence{
-		IdentifiableMemoryPersistence: *cpersist.NewIdentifiableMemoryPersistence(proto),
-	}
+	c := &BeaconsMemoryPersistence{}
+	c.IdentifiableMemoryPersistence = *cpersist.NewIdentifiableMemoryPersistence(proto)
 	c.MaxPageSize = 1000
-	return &c
+	return c
 }
 
 func (c *BeaconsMemoryPersistence) composeFilter(filter *cdata.FilterParams) func(beacon interface{}) bool {

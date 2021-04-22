@@ -4,23 +4,22 @@ import (
 	"reflect"
 	"strings"
 
-	bdata "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	data "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
-	mngpersist "github.com/pip-services3-go/pip-services3-mongodb-go/persistence"
+	mpersist "github.com/pip-services3-go/pip-services3-mongodb-go/persistence"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type BeaconsMongoDbPersistence struct {
-	mngpersist.IdentifiableMongoDbPersistence
+	mpersist.IdentifiableMongoDbPersistence
 }
 
 func NewBeaconsMongoDbPersistence() *BeaconsMongoDbPersistence {
-	proto := reflect.TypeOf(&data.BeaconV1{})
-	bmp := BeaconsMongoDbPersistence{}
-	bmp.IdentifiableMongoDbPersistence = *mngpersist.NewIdentifiableMongoDbPersistence(proto, "beacons")
-	return &bmp
+	proto := reflect.TypeOf(&data1.BeaconV1{})
+	c := &BeaconsMongoDbPersistence{}
+	c.IdentifiableMongoDbPersistence = *mpersist.InheritIdentifiableMongoDbPersistence(c, proto, "beacons")
+	return c
 }
 
 func (c *BeaconsMongoDbPersistence) composeFilter(filter *cdata.FilterParams) interface{} {
@@ -62,95 +61,38 @@ func (c *BeaconsMongoDbPersistence) composeFilter(filter *cdata.FilterParams) in
 	return bson.M{}
 }
 
-func (c *BeaconsMongoDbPersistence) Create(correlationId string, item *bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
-	value, err := c.IdentifiableMongoDbPersistence.Create(correlationId, item)
-
-	if value != nil {
-		val, _ := value.(*bdata.BeaconV1)
-		result = val
-	}
-	return result, err
-}
-
-func (c *BeaconsMongoDbPersistence) GetListByIds(correlationId string, ids []string) (items []*bdata.BeaconV1, err error) {
-	convIds := make([]interface{}, len(ids))
-	for i, v := range ids {
-		convIds[i] = v
-	}
-	result, err := c.IdentifiableMongoDbPersistence.GetListByIds(correlationId, convIds)
-	items = make([]*bdata.BeaconV1, len(result))
-	for i, v := range result {
-		val, _ := v.(*bdata.BeaconV1)
-		items[i] = val
-	}
-	return items, err
-}
-
-func (c *BeaconsMongoDbPersistence) GetOneById(correlationId string, id string) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMongoDbPersistence.GetOneById(correlationId, id)
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMongoDbPersistence) Update(correlationId string, item *bdata.BeaconV1) (result *bdata.BeaconV1, err error) {
-	value, err := c.IdentifiableMongoDbPersistence.Update(correlationId, item)
-	if value != nil {
-		val, _ := value.(*bdata.BeaconV1)
-		result = val
-	}
-	return result, err
-}
-
-func (c *BeaconsMongoDbPersistence) UpdatePartially(correlationId string, id string, data *cdata.AnyValueMap) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMongoDbPersistence.UpdatePartially(correlationId, id, data)
-
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMongoDbPersistence) DeleteById(correlationId string, id string) (item *bdata.BeaconV1, err error) {
-	result, err := c.IdentifiableMongoDbPersistence.DeleteById(correlationId, id)
-	if result != nil {
-		val, _ := result.(*bdata.BeaconV1)
-		item = val
-	}
-	return item, err
-}
-
-func (c *BeaconsMongoDbPersistence) DeleteByIds(correlationId string, ids []string) (err error) {
-	convIds := make([]interface{}, len(ids))
-	for i, v := range ids {
-		convIds[i] = v
-	}
-	return c.IdentifiableMongoDbPersistence.DeleteByIds(correlationId, convIds)
-}
-
-func (c *BeaconsMongoDbPersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *bdata.BeaconV1DataPage, err error) {
+func (c *BeaconsMongoDbPersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *data1.BeaconV1DataPage, err error) {
 	tempPage, resErr := c.IdentifiableMongoDbPersistence.GetPageByFilter(correlationId, c.composeFilter(filter), paging, nil, nil)
 	if resErr != nil {
 		return nil, resErr
 	}
+
 	// Convert to BeaconV1DataPage
 	dataLen := int64(len(tempPage.Data)) // For full release tempPage and delete this by GC
-	beaconData := make([]*bdata.BeaconV1, dataLen)
+	beaconData := make([]*data1.BeaconV1, dataLen)
 	for i, v := range tempPage.Data {
-		beaconData[i] = v.(*bdata.BeaconV1)
+		beaconData[i] = v.(*data1.BeaconV1)
 	}
-	page = bdata.NewBeaconV1DataPage(&dataLen, beaconData)
+	page = data1.NewBeaconV1DataPage(&dataLen, beaconData)
 	return page, nil
 }
 
-func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string) (result *bdata.BeaconV1, err error) {
+func (c *BeaconsMongoDbPersistence) GetOneById(correlationId string, id string) (item *data1.BeaconV1, err error) {
+	result, err := c.IdentifiableMongoDbPersistence.GetOneById(correlationId, id)
 
+	// Convert to BeaconV1
+	if result != nil {
+		val, _ := result.(*data1.BeaconV1)
+		item = val
+	}
+	return item, err
+}
+
+func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string) (result *data1.BeaconV1, err error) {
 	filter := bson.M{"udi": udi}
 	docPointer := c.NewObjectByPrototype()
 	foRes := c.Collection.FindOne(c.Connection.Ctx, filter)
+
 	ferr := foRes.Decode(docPointer.Interface())
 	if ferr != nil {
 		if ferr == mongo.ErrNoDocuments {
@@ -158,13 +100,45 @@ func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string
 		}
 		return nil, ferr
 	}
-	item := c.ConvertResultToPublic(docPointer, c.Prototype)
 
+	// Convert to BeaconV1
+	item := c.ConvertToPublic(docPointer)
 	if item != nil {
-		val, _ := item.(*bdata.BeaconV1)
+		val, _ := item.(*data1.BeaconV1)
 		result = val
 	}
-
 	return result, nil
+}
 
+func (c *BeaconsMongoDbPersistence) Create(correlationId string, item *data1.BeaconV1) (result *data1.BeaconV1, err error) {
+	value, err := c.IdentifiableMongoDbPersistence.Create(correlationId, item)
+
+	// Convert to BeaconV1
+	if value != nil {
+		val, _ := value.(*data1.BeaconV1)
+		result = val
+	}
+	return result, err
+}
+
+func (c *BeaconsMongoDbPersistence) Update(correlationId string, item *data1.BeaconV1) (result *data1.BeaconV1, err error) {
+	value, err := c.IdentifiableMongoDbPersistence.Update(correlationId, item)
+
+	// Convert to BeaconV1
+	if value != nil {
+		val, _ := value.(*data1.BeaconV1)
+		result = val
+	}
+	return result, err
+}
+
+func (c *BeaconsMongoDbPersistence) DeleteById(correlationId string, id string) (result *data1.BeaconV1, err error) {
+	value, err := c.IdentifiableMongoDbPersistence.DeleteById(correlationId, id)
+
+	// Convert to BeaconV1
+	if value != nil {
+		val, _ := value.(*data1.BeaconV1)
+		result = val
+	}
+	return result, err
 }

@@ -1,7 +1,0 @@
-{
-    "name": "pip-services-beacons-go",
-    "registry": "pipdevs/pipdevs",
-    "test_route": "v1/beacons/get_beacons",
-    "version": "1.0",
-    "build": "0"
-}

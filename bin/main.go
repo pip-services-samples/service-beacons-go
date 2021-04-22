@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	cont "github.com/pip-services-samples/pip-services-beacons-go/container"
+	cont "github.com/pip-services-samples/service-beacons-go/container"
 )
 
 func main() {

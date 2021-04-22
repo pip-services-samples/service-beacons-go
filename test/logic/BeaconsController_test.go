@@ -3,9 +3,9 @@ package test_logic
 import (
 	"testing"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	logic "github.com/pip-services-samples/pip-services-beacons-go/logic"
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
+	logic "github.com/pip-services-samples/service-beacons-go/logic"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
@@ -47,8 +47,8 @@ func newBeaconsControllerTest() *beaconsControllerTest {
 	controller.Configure(cconf.NewEmptyConfigParams())
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "default", "1.0"), persistence,
-		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), controller,
+		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
+		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
 	)
 
 	controller.SetReferences(references)

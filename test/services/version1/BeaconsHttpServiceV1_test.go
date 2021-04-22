@@ -5,14 +5,13 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	logic "github.com/pip-services-samples/pip-services-beacons-go/logic"
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
-	services1 "github.com/pip-services-samples/pip-services-beacons-go/services/version1"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
+	logic "github.com/pip-services-samples/service-beacons-go/logic"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
+	services1 "github.com/pip-services-samples/service-beacons-go/services/version1"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
@@ -20,17 +19,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type beaconsRestServiceV1Test struct {
-	BEACON1        *data1.BeaconV1
-	BEACON2        *data1.BeaconV1
-	persistence    *persist.BeaconsMemoryPersistence
-	controller     *logic.BeaconsController
-	service        *services1.BeaconsRestServiceV1
-	filename       string
-	openApiContent string
+type beaconsHttpServiceV1Test struct {
+	BEACON1     *data1.BeaconV1
+	BEACON2     *data1.BeaconV1
+	persistence *persist.BeaconsMemoryPersistence
+	controller  *logic.BeaconsController
+	service     *services1.BeaconsHttpServiceV1
 }
 
-func newBeaconsRestServiceV1Test() *beaconsRestServiceV1Test {
+func newBeaconsHttpServiceV1Test() *beaconsHttpServiceV1Test {
 	BEACON1 := &data1.BeaconV1{
 		Id:     "1",
 		Udi:    "00001",
@@ -51,52 +48,40 @@ func newBeaconsRestServiceV1Test() *beaconsRestServiceV1Test {
 		Radius: 70,
 	}
 
-	openApiContent := "swagger yaml content from file"
-	filename := "id_generator_temp.yaml"
-
 	persistence := persist.NewBeaconsMemoryPersistence()
 	persistence.Configure(cconf.NewEmptyConfigParams())
 
 	controller := logic.NewBeaconsController()
 	controller.Configure(cconf.NewEmptyConfigParams())
 
-	service := services1.NewBeaconsRestServiceV1()
+	service := services1.NewBeaconsHttpServiceV1()
 	service.Configure(cconf.NewConfigParamsFromTuples(
 		"connection.protocol", "http",
-		"connection.port", "3006",
+		"connection.port", "3005",
 		"connection.host", "localhost",
 		"swagger.enable", "true", // Set true for swagger service enable
-		"openapi_file", filename, // Set file name for test only
 	))
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "default", "1.0"), persistence,
-		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), controller,
-		cref.NewDescriptor("pip-services-beacons", "service", "http", "default", "1.0"), service,
+		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
+		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
+		cref.NewDescriptor("beacons", "service", "http", "default", "1.0"), service,
 	)
 
 	controller.SetReferences(references)
 	service.SetReferences(references)
 
-	return &beaconsRestServiceV1Test{
-		BEACON1:        BEACON1,
-		BEACON2:        BEACON2,
-		persistence:    persistence,
-		controller:     controller,
-		service:        service,
-		filename:       filename,
-		openApiContent: openApiContent,
+	return &beaconsHttpServiceV1Test{
+		BEACON1:     BEACON1,
+		BEACON2:     BEACON2,
+		persistence: persistence,
+		controller:  controller,
+		service:     service,
 	}
 }
 
-func (c *beaconsRestServiceV1Test) setup(t *testing.T) {
-
-	file, err := os.OpenFile(c.filename, os.O_RDWR|os.O_CREATE, 0755)
-	assert.Nil(t, err)
-	_, err = file.Write(([]byte)(c.openApiContent))
-	assert.Nil(t, err)
-
-	err = c.persistence.Open("")
+func (c *beaconsHttpServiceV1Test) setup(t *testing.T) {
+	err := c.persistence.Open("")
 	if err != nil {
 		t.Error("Failed to open persistence", err)
 	}
@@ -112,7 +97,7 @@ func (c *beaconsRestServiceV1Test) setup(t *testing.T) {
 	}
 }
 
-func (c *beaconsRestServiceV1Test) teardown(t *testing.T) {
+func (c *beaconsHttpServiceV1Test) teardown(t *testing.T) {
 	err := c.service.Close("")
 	if err != nil {
 		t.Error("Failed to close service", err)
@@ -122,17 +107,17 @@ func (c *beaconsRestServiceV1Test) teardown(t *testing.T) {
 	if err != nil {
 		t.Error("Failed to close persistence", err)
 	}
-
-	// delete temp file
-	err = os.Remove(c.filename)
-	assert.Nil(t, err)
 }
 
-func (c *beaconsRestServiceV1Test) testCrudOperations(t *testing.T) {
+func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 	var beacon1 *data1.BeaconV1
 
+	// Create the first beacon
+	body := cdata.NewAnyValueMapFromTuples(
+		"beacon", c.BEACON1,
+	)
 	var beacon data1.BeaconV1
-	err := c.invoke("post", "/v1/beacons/beacons", c.BEACON1, &beacon)
+	err := c.invoke("/v1/beacons/create_beacon", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Udi, beacon.Udi)
@@ -141,7 +126,11 @@ func (c *beaconsRestServiceV1Test) testCrudOperations(t *testing.T) {
 	assert.Equal(t, c.BEACON1.Label, beacon.Label)
 	assert.NotNil(t, beacon.Center)
 
-	err = c.invoke("post", "/v1/beacons/beacons", c.BEACON2, &beacon)
+	// Create the second beacon
+	body = cdata.NewAnyValueMapFromTuples(
+		"beacon", c.BEACON2,
+	)
+	err = c.invoke("/v1/beacons/create_beacon", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON2.Udi, beacon.Udi)
@@ -150,8 +139,13 @@ func (c *beaconsRestServiceV1Test) testCrudOperations(t *testing.T) {
 	assert.Equal(t, c.BEACON2.Label, beacon.Label)
 	assert.NotNil(t, beacon.Center)
 
+	// Get all beacons
+	body = cdata.NewAnyValueMapFromTuples(
+		"filter", cdata.NewEmptyFilterParams(),
+		"paging", cdata.NewEmptyFilterParams(),
+	)
 	var page data1.BeaconV1DataPage
-	err = c.invoke("get", "/v1/beacons/beacons", nil, &page)
+	err = c.invoke("/v1/beacons/get_beacons", body, &page)
 	assert.Nil(t, err)
 	assert.NotNil(t, page)
 	assert.Len(t, page.Data, 2)
@@ -159,86 +153,91 @@ func (c *beaconsRestServiceV1Test) testCrudOperations(t *testing.T) {
 
 	// Update the beacon
 	beacon1.Label = "ABC"
-	err = c.invoke("put", "/v1/beacons/beacons/"+beacon1.Id, beacon1, &beacon)
+	body = cdata.NewAnyValueMapFromTuples(
+		"beacon", beacon1,
+	)
+	err = c.invoke("/v1/beacons/update_beacon", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
-	assert.Equal(t, beacon1.Id, beacon.Id)
+	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 	assert.Equal(t, "ABC", beacon.Label)
 
-	err = c.invoke("get", "/v1/beacons/beacons/udi/"+beacon1.Udi, nil, &beacon)
+	// Get beacon by udi
+	body = cdata.NewAnyValueMapFromTuples(
+		"udi", beacon1.Udi,
+	)
+	err = c.invoke("/v1/beacons/get_beacon_by_udi", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
-	assert.Equal(t, beacon1.Id, beacon.Id)
+	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
-	//Calculate position for one beacon
-	body := cdata.NewAnyValueMapFromTuples(
+	// Calculate position for one beacon
+	body = cdata.NewAnyValueMapFromTuples(
 		"site_id", "1",
 		"udis", []string{"00001"},
 	)
 	var position data1.GeoPointV1
-	err = c.invoke("post", "/v1/beacons/calculate_position", body.Value(), &position)
+	err = c.invoke("/v1/beacons/calculate_position", body, &position)
 	assert.Nil(t, err)
 	assert.NotNil(t, position)
 	assert.Equal(t, "Point", position.Type)
 	assert.Equal(t, (float32)(0.0), position.Coordinates[0][0])
 	assert.Equal(t, (float32)(0.0), position.Coordinates[0][1])
 
-	err = c.invoke("delete", "/v1/beacons/beacons/"+beacon1.Id, nil, &beacon)
+	// Delete the beacon
+	body = cdata.NewAnyValueMapFromTuples(
+		"beacon_id", beacon1.Id,
+	)
+	err = c.invoke("/v1/beacons/delete_beacon_by_id", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
-	assert.Equal(t, beacon1.Id, beacon.Id)
+	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
+	// Try to get deleted beacon
+	body = cdata.NewAnyValueMapFromTuples(
+		"beacon_id", beacon1.Id,
+	)
 	beacon = data1.BeaconV1{}
-	err = c.invoke("get", "/v1/beacons/beacons/"+beacon1.Id, nil, &beacon)
+	err = c.invoke("/v1/beacons/get_beacon_by_id", body, &beacon)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Empty(t, beacon)
 }
 
-func (c *beaconsRestServiceV1Test) testSwagger(t *testing.T) {
-
-	resp, err := http.Get("http://localhost:3006/v1/beacons/swagger")
+func (c *beaconsHttpServiceV1Test) testSwagger(t *testing.T) {
+	resp, err := http.Get("http://localhost:3005/v1/beacons/swagger")
 	assert.Nil(t, err)
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.Nil(t, err)
-	assert.Equal(t, c.openApiContent, (string)(body))
+	assert.True(t, strings.Index((string)(body), "openapi:") >= 0)
 }
 
-func (c *beaconsRestServiceV1Test) invoke(method string,
-	route string, body interface{}, result interface{}) error {
-	var url string = "http://localhost:3006" + route
+func (c *beaconsHttpServiceV1Test) invoke(
+	route string, body *cdata.AnyValueMap, result interface{}) error {
+	var url string = "http://localhost:3005" + route
 
-	method = strings.ToUpper(method)
-	var bodyReader *bytes.Reader = bytes.NewReader(make([]byte, 0, 0))
+	var bodyReader *bytes.Reader = nil
 	if body != nil {
-		jsonBody, _ := json.Marshal(body)
+		jsonBody, _ := json.Marshal(body.Value())
 		bodyReader = bytes.NewReader(jsonBody)
 	}
 
-	req, err := http.NewRequest(method, url, bodyReader)
+	postResponse, postErr := http.Post(url, "application/json", bodyReader)
 
-	if err != nil {
-		return err
-	}
-	// Set headers
-	req.Header.Set("Accept", "application/json")
-	client := http.Client{}
-	response, respErr := client.Do(req)
-
-	if respErr != nil {
-		return respErr
+	if postErr != nil {
+		return postErr
 	}
 
-	if response.StatusCode == 204 {
+	if postResponse.StatusCode == 204 {
 		return nil
 	}
 
-	resBody, bodyErr := ioutil.ReadAll(response.Body)
+	resBody, bodyErr := ioutil.ReadAll(postResponse.Body)
 	if bodyErr != nil {
 		return bodyErr
 	}
 
-	if response.StatusCode >= 400 {
+	if postResponse.StatusCode >= 400 {
 		appErr := cerr.ApplicationError{}
 		json.Unmarshal(resBody, &appErr)
 		return &appErr
@@ -252,8 +251,8 @@ func (c *beaconsRestServiceV1Test) invoke(method string,
 	return jsonErr
 }
 
-func TestBeaconsRestServiceV1(t *testing.T) {
-	c := newBeaconsRestServiceV1Test()
+func TestBeaconsCommmandableHttpServiceV1(t *testing.T) {
+	c := newBeaconsHttpServiceV1Test()
 
 	c.setup(t)
 	t.Run("CRUD Operations", c.testCrudOperations)
