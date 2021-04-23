@@ -1,11 +1,7 @@
 package test_services1
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"strings"
+	"reflect"
 	"testing"
 
 	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
@@ -14,17 +10,21 @@ import (
 	services1 "github.com/pip-services-samples/service-beacons-go/services/version1"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
-	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
+	tclients "github.com/pip-services3-go/pip-services3-rpc-go/test"
 	"github.com/stretchr/testify/assert"
 )
 
 type beaconsHttpServiceV1Test struct {
-	BEACON1     *data1.BeaconV1
-	BEACON2     *data1.BeaconV1
-	persistence *persist.BeaconsMemoryPersistence
-	controller  *logic.BeaconsController
-	service     *services1.BeaconsHttpServiceV1
+	BEACON1            *data1.BeaconV1
+	BEACON2            *data1.BeaconV1
+	beaconDataPageType reflect.Type
+	beaconType         reflect.Type
+	geoPointType       reflect.Type
+	persistence        *persist.BeaconsMemoryPersistence
+	controller         *logic.BeaconsController
+	service            *services1.BeaconsHttpServiceV1
+	client             *tclients.TestCommandableHttpClient
 }
 
 func newBeaconsHttpServiceV1Test() *beaconsHttpServiceV1Test {
@@ -48,6 +48,12 @@ func newBeaconsHttpServiceV1Test() *beaconsHttpServiceV1Test {
 		Radius: 70,
 	}
 
+	restConfig := cconf.NewConfigParamsFromTuples(
+		"connection.protocol", "http",
+		"connection.port", "3000",
+		"connection.host", "localhost",
+	)
+
 	persistence := persist.NewBeaconsMemoryPersistence()
 	persistence.Configure(cconf.NewEmptyConfigParams())
 
@@ -55,28 +61,31 @@ func newBeaconsHttpServiceV1Test() *beaconsHttpServiceV1Test {
 	controller.Configure(cconf.NewEmptyConfigParams())
 
 	service := services1.NewBeaconsHttpServiceV1()
-	service.Configure(cconf.NewConfigParamsFromTuples(
-		"connection.protocol", "http",
-		"connection.port", "3005",
-		"connection.host", "localhost",
-		"swagger.enable", "true", // Set true for swagger service enable
-	))
+	service.Configure(restConfig)
+
+	client := tclients.NewTestCommandableHttpClient("v1/beacons")
+	client.Configure(restConfig)
 
 	references := cref.NewReferencesFromTuples(
 		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
 		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
 		cref.NewDescriptor("beacons", "service", "http", "default", "1.0"), service,
+		cref.NewDescriptor("beacons", "client", "http", "default", "1.0"), client,
 	)
 
 	controller.SetReferences(references)
 	service.SetReferences(references)
 
 	return &beaconsHttpServiceV1Test{
-		BEACON1:     BEACON1,
-		BEACON2:     BEACON2,
-		persistence: persistence,
-		controller:  controller,
-		service:     service,
+		BEACON1:            BEACON1,
+		BEACON2:            BEACON2,
+		beaconDataPageType: reflect.TypeOf(&data1.BeaconV1DataPage{}),
+		beaconType:         reflect.TypeOf(&data1.BeaconV1{}),
+		geoPointType:       reflect.TypeOf(&data1.GeoPointV1{}),
+		persistence:        persistence,
+		controller:         controller,
+		service:            service,
+		client:             client,
 	}
 }
 
@@ -91,6 +100,11 @@ func (c *beaconsHttpServiceV1Test) setup(t *testing.T) {
 		t.Error("Failed to open service", err)
 	}
 
+	err = c.client.Open("")
+	if err != nil {
+		t.Error("Failed to open client", err)
+	}
+
 	err = c.persistence.Clear("")
 	if err != nil {
 		t.Error("Failed to clear persistence", err)
@@ -98,7 +112,12 @@ func (c *beaconsHttpServiceV1Test) setup(t *testing.T) {
 }
 
 func (c *beaconsHttpServiceV1Test) teardown(t *testing.T) {
-	err := c.service.Close("")
+	err := c.client.Close("")
+	if err != nil {
+		t.Error("Failed to close client", err)
+	}
+
+	err = c.service.Close("")
 	if err != nil {
 		t.Error("Failed to close service", err)
 	}
@@ -113,11 +132,11 @@ func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 	var beacon1 *data1.BeaconV1
 
 	// Create the first beacon
-	body := cdata.NewAnyValueMapFromTuples(
+	params := cdata.NewAnyValueMapFromTuples(
 		"beacon", c.BEACON1,
 	)
-	var beacon data1.BeaconV1
-	err := c.invoke("/v1/beacons/create_beacon", body, &beacon)
+	result, err := c.client.CallCommand(c.beaconType, "create_beacon", "", params)
+	beacon := result.(*data1.BeaconV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Udi, beacon.Udi)
@@ -127,10 +146,11 @@ func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 	assert.NotNil(t, beacon.Center)
 
 	// Create the second beacon
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"beacon", c.BEACON2,
 	)
-	err = c.invoke("/v1/beacons/create_beacon", body, &beacon)
+	result, err = c.client.CallCommand(c.beaconType, "create_beacon", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON2.Udi, beacon.Udi)
@@ -140,12 +160,12 @@ func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 	assert.NotNil(t, beacon.Center)
 
 	// Get all beacons
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"filter", cdata.NewEmptyFilterParams(),
 		"paging", cdata.NewEmptyFilterParams(),
 	)
-	var page data1.BeaconV1DataPage
-	err = c.invoke("/v1/beacons/get_beacons", body, &page)
+	result, err = c.client.CallCommand(c.beaconDataPageType, "get_beacons", "", params)
+	page := result.(*data1.BeaconV1DataPage)
 	assert.Nil(t, err)
 	assert.NotNil(t, page)
 	assert.Len(t, page.Data, 2)
@@ -153,31 +173,33 @@ func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 
 	// Update the beacon
 	beacon1.Label = "ABC"
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"beacon", beacon1,
 	)
-	err = c.invoke("/v1/beacons/update_beacon", body, &beacon)
+	result, err = c.client.CallCommand(c.beaconType, "update_beacon", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 	assert.Equal(t, "ABC", beacon.Label)
 
 	// Get beacon by udi
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"udi", beacon1.Udi,
 	)
-	err = c.invoke("/v1/beacons/get_beacon_by_udi", body, &beacon)
+	result, err = c.client.CallCommand(c.beaconType, "get_beacon_by_udi", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
 	// Calculate position for one beacon
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"site_id", "1",
 		"udis", []string{"00001"},
 	)
-	var position data1.GeoPointV1
-	err = c.invoke("/v1/beacons/calculate_position", body, &position)
+	result, err = c.client.CallCommand(c.geoPointType, "calculate_position", "", params)
+	position := result.(*data1.GeoPointV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, position)
 	assert.Equal(t, "Point", position.Type)
@@ -185,70 +207,22 @@ func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
 	assert.Equal(t, (float32)(0.0), position.Coordinates[0][1])
 
 	// Delete the beacon
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"beacon_id", beacon1.Id,
 	)
-	err = c.invoke("/v1/beacons/delete_beacon_by_id", body, &beacon)
+	result, err = c.client.CallCommand(c.beaconType, "delete_beacon_by_id", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
 	// Try to get deleted beacon
-	body = cdata.NewAnyValueMapFromTuples(
+	params = cdata.NewAnyValueMapFromTuples(
 		"beacon_id", beacon1.Id,
 	)
-	beacon = data1.BeaconV1{}
-	err = c.invoke("/v1/beacons/get_beacon_by_id", body, &beacon)
+	result, err = c.client.CallCommand(c.beaconType, "get_beacon_by_id", "", params)
 	assert.Nil(t, err)
-	assert.NotNil(t, beacon)
-	assert.Empty(t, beacon)
-}
-
-func (c *beaconsHttpServiceV1Test) testSwagger(t *testing.T) {
-	resp, err := http.Get("http://localhost:3005/v1/beacons/swagger")
-	assert.Nil(t, err)
-	body, err := ioutil.ReadAll(resp.Body)
-	assert.Nil(t, err)
-	assert.True(t, strings.Index((string)(body), "openapi:") >= 0)
-}
-
-func (c *beaconsHttpServiceV1Test) invoke(
-	route string, body *cdata.AnyValueMap, result interface{}) error {
-	var url string = "http://localhost:3005" + route
-
-	var bodyReader *bytes.Reader = nil
-	if body != nil {
-		jsonBody, _ := json.Marshal(body.Value())
-		bodyReader = bytes.NewReader(jsonBody)
-	}
-
-	postResponse, postErr := http.Post(url, "application/json", bodyReader)
-
-	if postErr != nil {
-		return postErr
-	}
-
-	if postResponse.StatusCode == 204 {
-		return nil
-	}
-
-	resBody, bodyErr := ioutil.ReadAll(postResponse.Body)
-	if bodyErr != nil {
-		return bodyErr
-	}
-
-	if postResponse.StatusCode >= 400 {
-		appErr := cerr.ApplicationError{}
-		json.Unmarshal(resBody, &appErr)
-		return &appErr
-	}
-
-	if result == nil {
-		return nil
-	}
-
-	jsonErr := json.Unmarshal(resBody, result)
-	return jsonErr
+	assert.Nil(t, result)
 }
 
 func TestBeaconsCommmandableHttpServiceV1(t *testing.T) {
@@ -257,9 +231,4 @@ func TestBeaconsCommmandableHttpServiceV1(t *testing.T) {
 	c.setup(t)
 	t.Run("CRUD Operations", c.testCrudOperations)
 	c.teardown(t)
-
-	c.setup(t)
-	t.Run("Swagger open API", c.testSwagger)
-	c.teardown(t)
-
 }

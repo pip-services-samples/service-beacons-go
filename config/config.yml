@@ -9,7 +9,7 @@
   level: "trace"
 
 # Tracer that posts records to log
-#- descriptor: "pip-services:tracer:log:default:1.0"
+- descriptor: "pip-services:tracer:log:default:1.0"
 
 # Performance counters that post values to log
 - descriptor: "pip-services:counters:log:default:1.0"

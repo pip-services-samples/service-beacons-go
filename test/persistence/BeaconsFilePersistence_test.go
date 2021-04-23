@@ -13,8 +13,10 @@ type BeaconsFilePersistenceTest struct {
 }
 
 func newBeaconsFilePersistenceTest() *BeaconsFilePersistenceTest {
-	persistence := persist.NewBeaconsFilePersistence("../../temp/beacons.test.json")
-	persistence.Configure(cconf.NewEmptyConfigParams())
+	persistence := persist.NewBeaconsFilePersistence("")
+	persistence.Configure(cconf.NewConfigParamsFromTuples(
+		"path", "../../temp/beacons.test.json",
+	))
 
 	fixture := NewBeaconsPersistenceFixture(persistence)
 
