@@ -1,4 +1,4 @@
-package container
+package containers
 
 import (
 	factory "github.com/pip-services-samples/service-beacons-go/build"
