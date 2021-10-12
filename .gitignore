@@ -6,3 +6,4 @@ npm-debug.log*
 /go.sum
 /temp
 .DS_Store
+.vscode
