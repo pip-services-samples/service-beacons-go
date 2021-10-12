@@ -1,8 +1,0 @@
-# Start with the golang v1.13 image
-FROM golang:1.13
-
-WORKDIR /app
-
-COPY ./protos ./protos
-
-RUN protoc --go_out=plugins=grpc:. -I. ./protos/beacons_v1.proto

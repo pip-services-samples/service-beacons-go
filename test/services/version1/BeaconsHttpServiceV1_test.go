@@ -4,44 +4,30 @@ import (
 	"reflect"
 	"testing"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	logic "github.com/pip-services-samples/pip-services-beacons-go/logic"
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
-	services1 "github.com/pip-services-samples/pip-services-beacons-go/services/version1"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
+	logic "github.com/pip-services-samples/service-beacons-go/logic"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
+	services1 "github.com/pip-services-samples/service-beacons-go/services/version1"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
-	cclients "github.com/pip-services3-go/pip-services3-grpc-go/clients"
+	tclients "github.com/pip-services3-go/pip-services3-rpc-go/test"
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	BeaconV1DataPageType reflect.Type = reflect.TypeOf(&data1.BeaconV1DataPage{})
-	BeaconV1Type         reflect.Type = reflect.TypeOf(&data1.BeaconV1{})
-	GeoPointV1Type       reflect.Type = reflect.TypeOf(&data1.GeoPointV1{})
-)
-
-type testGrpcClient struct {
-	*cclients.CommandableGrpcClient
+type beaconsHttpServiceV1Test struct {
+	BEACON1            *data1.BeaconV1
+	BEACON2            *data1.BeaconV1
+	beaconDataPageType reflect.Type
+	beaconType         reflect.Type
+	geoPointType       reflect.Type
+	persistence        *persist.BeaconsMemoryPersistence
+	controller         *logic.BeaconsController
+	service            *services1.BeaconsHttpServiceV1
+	client             *tclients.TestCommandableHttpClient
 }
 
-func newTestGrpcClient() *testGrpcClient {
-	c := &testGrpcClient{
-		CommandableGrpcClient: cclients.NewCommandableGrpcClient("v1.beacons"),
-	}
-	return c
-}
-
-type beaconsCommandableGrpcServiceV1Test struct {
-	BEACON1     *data1.BeaconV1
-	BEACON2     *data1.BeaconV1
-	persistence *persist.BeaconsMemoryPersistence
-	controller  *logic.BeaconsController
-	service     *services1.BeaconsCommandableGrpcServiceV1
-	client      *testGrpcClient
-}
-
-func newBeaconsCommandableGrpcServiceV1Test() *beaconsCommandableGrpcServiceV1Test {
+func newBeaconsHttpServiceV1Test() *beaconsHttpServiceV1Test {
 	BEACON1 := &data1.BeaconV1{
 		Id:     "1",
 		Udi:    "00001",
@@ -62,9 +48,9 @@ func newBeaconsCommandableGrpcServiceV1Test() *beaconsCommandableGrpcServiceV1Te
 		Radius: 70,
 	}
 
-	grpcConf := cconf.NewConfigParamsFromTuples(
+	restConfig := cconf.NewConfigParamsFromTuples(
 		"connection.protocol", "http",
-		"connection.port", "3002",
+		"connection.port", "3000",
 		"connection.host", "localhost",
 	)
 
@@ -74,35 +60,36 @@ func newBeaconsCommandableGrpcServiceV1Test() *beaconsCommandableGrpcServiceV1Te
 	controller := logic.NewBeaconsController()
 	controller.Configure(cconf.NewEmptyConfigParams())
 
-	service := services1.NewBeaconsCommandableGrpcServiceV1()
-	service.Configure(grpcConf)
+	service := services1.NewBeaconsHttpServiceV1()
+	service.Configure(restConfig)
+
+	client := tclients.NewTestCommandableHttpClient("v1/beacons")
+	client.Configure(restConfig)
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("pip-services-beacons", "persistence", "memory", "default", "1.0"), persistence,
-		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), controller,
-		cref.NewDescriptor("pip-services-beacons", "service", "grpc", "default", "1.0"), service,
+		cref.NewDescriptor("beacons", "persistence", "memory", "default", "1.0"), persistence,
+		cref.NewDescriptor("beacons", "controller", "default", "default", "1.0"), controller,
+		cref.NewDescriptor("beacons", "service", "http", "default", "1.0"), service,
+		cref.NewDescriptor("beacons", "client", "http", "default", "1.0"), client,
 	)
 
 	controller.SetReferences(references)
 	service.SetReferences(references)
 
-	var client *testGrpcClient
-
-	client = newTestGrpcClient()
-
-	client.Configure(grpcConf)
-
-	return &beaconsCommandableGrpcServiceV1Test{
-		BEACON1:     BEACON1,
-		BEACON2:     BEACON2,
-		persistence: persistence,
-		controller:  controller,
-		service:     service,
-		client:      client,
+	return &beaconsHttpServiceV1Test{
+		BEACON1:            BEACON1,
+		BEACON2:            BEACON2,
+		beaconDataPageType: reflect.TypeOf(&data1.BeaconV1DataPage{}),
+		beaconType:         reflect.TypeOf(&data1.BeaconV1{}),
+		geoPointType:       reflect.TypeOf(&data1.GeoPointV1{}),
+		persistence:        persistence,
+		controller:         controller,
+		service:            service,
+		client:             client,
 	}
 }
 
-func (c *beaconsCommandableGrpcServiceV1Test) setup(t *testing.T) {
+func (c *beaconsHttpServiceV1Test) setup(t *testing.T) {
 	err := c.persistence.Open("")
 	if err != nil {
 		t.Error("Failed to open persistence", err)
@@ -113,19 +100,18 @@ func (c *beaconsCommandableGrpcServiceV1Test) setup(t *testing.T) {
 		t.Error("Failed to open service", err)
 	}
 
-	err = c.persistence.Clear("")
-	if err != nil {
-		t.Error("Failed to clear persistence", err)
-	}
-
 	err = c.client.Open("")
 	if err != nil {
 		t.Error("Failed to open client", err)
 	}
+
+	err = c.persistence.Clear("")
+	if err != nil {
+		t.Error("Failed to clear persistence", err)
+	}
 }
 
-func (c *beaconsCommandableGrpcServiceV1Test) teardown(t *testing.T) {
-
+func (c *beaconsHttpServiceV1Test) teardown(t *testing.T) {
 	err := c.client.Close("")
 	if err != nil {
 		t.Error("Failed to close client", err)
@@ -142,18 +128,16 @@ func (c *beaconsCommandableGrpcServiceV1Test) teardown(t *testing.T) {
 	}
 }
 
-func (c *beaconsCommandableGrpcServiceV1Test) testCrudOperations(t *testing.T) {
+func (c *beaconsHttpServiceV1Test) testCrudOperations(t *testing.T) {
+	var beacon1 *data1.BeaconV1
 
-	var beacon1 data1.BeaconV1
 	// Create the first beacon
-
 	params := cdata.NewAnyValueMapFromTuples(
 		"beacon", c.BEACON1,
 	)
-	res, err := c.client.CallCommand(BeaconV1Type, "create_beacon", "", params)
+	result, err := c.client.CallCommand(c.beaconType, "create_beacon", "", params)
+	beacon := result.(*data1.BeaconV1)
 	assert.Nil(t, err)
-	var beacon *data1.BeaconV1
-	beacon, _ = res.(*data1.BeaconV1)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Udi, beacon.Udi)
 	assert.Equal(t, c.BEACON1.SiteId, beacon.SiteId)
@@ -165,9 +149,9 @@ func (c *beaconsCommandableGrpcServiceV1Test) testCrudOperations(t *testing.T) {
 	params = cdata.NewAnyValueMapFromTuples(
 		"beacon", c.BEACON2,
 	)
-	res, err = c.client.CallCommand(BeaconV1Type, "create_beacon", "", params)
+	result, err = c.client.CallCommand(c.beaconType, "create_beacon", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
-	beacon, _ = res.(*data1.BeaconV1)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON2.Udi, beacon.Udi)
 	assert.Equal(t, c.BEACON2.SiteId, beacon.SiteId)
@@ -178,47 +162,45 @@ func (c *beaconsCommandableGrpcServiceV1Test) testCrudOperations(t *testing.T) {
 	// Get all beacons
 	params = cdata.NewAnyValueMapFromTuples(
 		"filter", cdata.NewEmptyFilterParams(),
-		"paging", cdata.NewEmptyPagingParams(),
+		"paging", cdata.NewEmptyFilterParams(),
 	)
-	res, err = c.client.CallCommand(BeaconV1DataPageType, "get_beacons", "", params)
+	result, err = c.client.CallCommand(c.beaconDataPageType, "get_beacons", "", params)
+	page := result.(*data1.BeaconV1DataPage)
 	assert.Nil(t, err)
-	var page *data1.BeaconV1DataPage
-	page, _ = res.(*data1.BeaconV1DataPage)
 	assert.NotNil(t, page)
 	assert.Len(t, page.Data, 2)
-	beacon1 = *page.Data[0]
+	beacon1 = page.Data[0]
 
 	// Update the beacon
 	beacon1.Label = "ABC"
 	params = cdata.NewAnyValueMapFromTuples(
 		"beacon", beacon1,
 	)
-	res, err = c.client.CallCommand(BeaconV1Type, "update_beacon", "", params)
+	result, err = c.client.CallCommand(c.beaconType, "update_beacon", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
-	beacon, _ = res.(*data1.BeaconV1)
 	assert.NotNil(t, beacon)
-	assert.Equal(t, beacon1.Id, beacon.Id)
+	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 	assert.Equal(t, "ABC", beacon.Label)
 
 	// Get beacon by udi
 	params = cdata.NewAnyValueMapFromTuples(
 		"udi", beacon1.Udi,
 	)
-	res, err = c.client.CallCommand(BeaconV1Type, "get_beacon_by_udi", "", params)
+	result, err = c.client.CallCommand(c.beaconType, "get_beacon_by_udi", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
-	beacon, _ = res.(*data1.BeaconV1)
 	assert.NotNil(t, beacon)
-	assert.Equal(t, beacon1.Id, beacon.Id)
+	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
 	// Calculate position for one beacon
 	params = cdata.NewAnyValueMapFromTuples(
 		"site_id", "1",
 		"udis", []string{"00001"},
 	)
-	res, err = c.client.CallCommand(GeoPointV1Type, "calculate_position", "", params)
+	result, err = c.client.CallCommand(c.geoPointType, "calculate_position", "", params)
+	position := result.(*data1.GeoPointV1)
 	assert.Nil(t, err)
-	var position *data1.GeoPointV1
-	position, _ = res.(*data1.GeoPointV1)
 	assert.NotNil(t, position)
 	assert.Equal(t, "Point", position.Type)
 	assert.Equal(t, (float32)(0.0), position.Coordinates[0][0])
@@ -228,9 +210,9 @@ func (c *beaconsCommandableGrpcServiceV1Test) testCrudOperations(t *testing.T) {
 	params = cdata.NewAnyValueMapFromTuples(
 		"beacon_id", beacon1.Id,
 	)
-	res, err = c.client.CallCommand(BeaconV1Type, "delete_beacon_by_id", "", params)
+	result, err = c.client.CallCommand(c.beaconType, "delete_beacon_by_id", "", params)
+	beacon = result.(*data1.BeaconV1)
 	assert.Nil(t, err)
-	beacon, _ = res.(*data1.BeaconV1)
 	assert.NotNil(t, beacon)
 	assert.Equal(t, c.BEACON1.Id, beacon.Id)
 
@@ -238,18 +220,15 @@ func (c *beaconsCommandableGrpcServiceV1Test) testCrudOperations(t *testing.T) {
 	params = cdata.NewAnyValueMapFromTuples(
 		"beacon_id", beacon1.Id,
 	)
-	res, err = c.client.CallCommand(BeaconV1Type, "get_beacon_by_id", "", params)
+	result, err = c.client.CallCommand(c.beaconType, "get_beacon_by_id", "", params)
 	assert.Nil(t, err)
-
-	beacon, _ = res.(*data1.BeaconV1)
-	assert.Nil(t, beacon)
+	assert.Nil(t, result)
 }
 
-func TestBeaconsCommmandableGrpcServiceV1(t *testing.T) {
-	c := newBeaconsCommandableGrpcServiceV1Test()
+func TestBeaconsCommmandableHttpServiceV1(t *testing.T) {
+	c := newBeaconsHttpServiceV1Test()
 
 	c.setup(t)
 	t.Run("CRUD Operations", c.testCrudOperations)
 	c.teardown(t)
-
 }

@@ -1,10 +1,10 @@
-package container
+package containers
 
 import (
-	factory "github.com/pip-services-samples/pip-services-beacons-go/build"
+	factory "github.com/pip-services-samples/service-beacons-go/build"
 	cproc "github.com/pip-services3-go/pip-services3-container-go/container"
-	gbuild "github.com/pip-services3-go/pip-services3-grpc-go/build"
 	rbuild "github.com/pip-services3-go/pip-services3-rpc-go/build"
+	sbuild "github.com/pip-services3-go/pip-services3-swagger-go/build"
 )
 
 type BeaconsProcess struct {
@@ -18,7 +18,7 @@ func NewBeaconsProcess() *BeaconsProcess {
 
 	c.AddFactory(factory.NewBeaconsServiceFactory())
 	c.AddFactory(rbuild.NewDefaultRpcFactory())
-	c.AddFactory(gbuild.NewDefaultGrpcFactory())
+	c.AddFactory(sbuild.NewDefaultSwaggerFactory())
 
 	return c
 }

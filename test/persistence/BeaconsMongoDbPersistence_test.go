@@ -4,15 +4,16 @@ import (
 	"os"
 	"testing"
 
-	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 )
 
-func TestBeaconsMongoDbPersistence(t *testing.T) {
+type BeaconsMongoDbPersistenceTest struct {
+	persistence *persist.BeaconsMongoDbPersistence
+	fixture     *BeaconsPersistenceFixture
+}
 
-	var persistence *bpersist.BeaconsMongoDbPersistence
-	var fixture *BeaconsPersistenceFixture
-
+func newBeaconsMongoDbPersistenceTest() *BeaconsMongoDbPersistenceTest {
 	mongoUri := os.Getenv("MONGO_SERVICE_URI")
 	mongoHost := os.Getenv("MONGO_SERVICE_HOST")
 
@@ -31,10 +32,10 @@ func TestBeaconsMongoDbPersistence(t *testing.T) {
 
 	// Exit if mongo connection is not set
 	if mongoUri == "" && mongoHost == "" {
-		return
+		return nil
 	}
 
-	persistence = bpersist.NewBeaconsMongoDbPersistence()
+	persistence := persist.NewBeaconsMongoDbPersistence()
 	persistence.Configure(cconf.NewConfigParamsFromTuples(
 		"connection.uri", mongoUri,
 		"connection.host", mongoHost,
@@ -42,17 +43,44 @@ func TestBeaconsMongoDbPersistence(t *testing.T) {
 		"connection.database", mongoDatabase,
 	))
 
-	fixture = NewBeaconsPersistenceFixture(persistence)
+	fixture := NewBeaconsPersistenceFixture(persistence)
 
-	opnErr := persistence.Open("")
-	if opnErr == nil {
-		persistence.Clear("")
+	return &BeaconsMongoDbPersistenceTest{
+		persistence: persistence,
+		fixture:     fixture,
+	}
+}
+
+func (c *BeaconsMongoDbPersistenceTest) setup(t *testing.T) {
+	err := c.persistence.Open("")
+	if err != nil {
+		t.Error("Failed to open persistence", err)
 	}
 
-	defer persistence.Close("")
+	err = c.persistence.Clear("")
+	if err != nil {
+		t.Error("Failed to clear persistence", err)
+	}
+}
 
-	t.Run("BeaconsMongoDbPersistence:CRUD Operations", fixture.TestCrudOperations)
-	persistence.Clear("")
-	t.Run("BeaconsMongoDbPersistence:Get with Filters", fixture.TestGetWithFilters)
+func (c *BeaconsMongoDbPersistenceTest) teardown(t *testing.T) {
+	err := c.persistence.Close("")
+	if err != nil {
+		t.Error("Failed to close persistence", err)
+	}
+}
 
+func TestBeaconsMongoDbPersistence(t *testing.T) {
+	c := newBeaconsMongoDbPersistenceTest()
+	if c == nil {
+		return
+	}
+
+	c.setup(t)
+	t.Run("CRUD Operations", c.fixture.TestCrudOperations)
+	c.teardown(t)
+
+	c.setup(t)
+	t.Run("Get With Filters", c.fixture.TestGetWithFilters)
+	c.teardown(t)
 }

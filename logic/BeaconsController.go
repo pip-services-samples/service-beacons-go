@@ -1,8 +1,8 @@
 package logic
 
 import (
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
 	ccmd "github.com/pip-services3-go/pip-services3-commons-go/commands"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
@@ -24,7 +24,7 @@ func (c *BeaconsController) Configure(config *cconf.ConfigParams) {
 }
 
 func (c *BeaconsController) SetReferences(references cref.IReferences) {
-	p, err := references.GetOneRequired(cref.NewDescriptor("pip-services-beacons", "persistence", "*", "*", "1.0"))
+	p, err := references.GetOneRequired(cref.NewDescriptor("beacons", "persistence", "*", "*", "1.0"))
 	if p != nil && err == nil {
 		c.persistence = p.(persist.IBeaconsPersistence)
 	}

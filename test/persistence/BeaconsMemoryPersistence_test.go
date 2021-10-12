@@ -3,7 +3,7 @@ package test_persistence
 import (
 	"testing"
 
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 )
 

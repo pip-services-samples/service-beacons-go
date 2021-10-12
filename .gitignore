@@ -1,10 +1,8 @@
 npm-debug.log*
 /.idea
 /node_modules
-/dist
 /obj/*
-/data/*.json
-/.vscode
+/data/*test.json
 /go.sum
 /temp
 .DS_Store

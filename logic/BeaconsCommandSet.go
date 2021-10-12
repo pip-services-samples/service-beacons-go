@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
 	ccmd "github.com/pip-services3-go/pip-services3-commons-go/commands"
 	cconv "github.com/pip-services3-go/pip-services3-commons-go/convert"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"

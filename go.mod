@@ -1,4 +1,4 @@
-module github.com/pip-services-samples/pip-services-beacons-go
+module github.com/pip-services-samples/service-beacons-go
 
 go 1.15
 

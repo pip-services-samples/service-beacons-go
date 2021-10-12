@@ -3,8 +3,8 @@ package test_persistence
 import (
 	"testing"
 
-	data1 "github.com/pip-services-samples/pip-services-beacons-go/data/version1"
-	persist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
+	data1 "github.com/pip-services-samples/service-beacons-go/data/version1"
+	persist "github.com/pip-services-samples/service-beacons-go/persistence"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	"github.com/stretchr/testify/assert"
 )
@@ -122,7 +122,6 @@ func (c *BeaconsPersistenceFixture) TestCrudOperations(t *testing.T) {
 	beacon, err = c.persistence.GetOneById("", beacon1.Id)
 	assert.Nil(t, err)
 	assert.Nil(t, beacon)
-
 }
 
 func (c *BeaconsPersistenceFixture) TestGetWithFilters(t *testing.T) {
