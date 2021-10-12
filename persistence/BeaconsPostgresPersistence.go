@@ -16,11 +16,10 @@ type BeaconsPostgresPersistence struct {
 
 func NewBeaconsPostgresPersistence() *BeaconsPostgresPersistence {
 	proto := reflect.TypeOf(&data1.BeaconV1{})
-	c := &BeaconsPostgresPersistence{
-		IdentifiablePostgresPersistence: *cpersist.NewIdentifiablePostgresPersistence(proto, "beacons"),
-	}
+	c := &BeaconsPostgresPersistence{}
+	c.IdentifiablePostgresPersistence = *cpersist.InheritIdentifiablePostgresPersistence(c, proto, "beacons")
 	// Row name must be in double quotes for properly case!!!
-	c.AutoCreateObject("CREATE TABLE \"beacons\" (\"id\" TEXT PRIMARY KEY, \"site_id\" TEXT, \"type\" TEXT, \"udi\" TEXT, \"label\" TEXT, \"center\" JSONB, \"radius\" REAL)")
+	c.EnsureSchema("CREATE TABLE \"beacons\" (\"id\" TEXT PRIMARY KEY, \"site_id\" TEXT, \"type\" TEXT, \"udi\" TEXT, \"label\" TEXT, \"center\" JSONB, \"radius\" REAL)")
 	c.EnsureIndex("beacons_site_id", map[string]string{"site_id": "1"}, map[string]string{})
 	return c
 }

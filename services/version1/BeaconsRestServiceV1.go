@@ -19,10 +19,8 @@ type BeaconsRestServiceV1 struct {
 }
 
 func NewBeaconsRestServiceV1() *BeaconsRestServiceV1 {
-	c := &BeaconsRestServiceV1{
-		RestService: cservices.NewRestService(),
-	}
-	c.RestService.IRegisterable = c
+	c := &BeaconsRestServiceV1{}
+	c.RestService = cservices.InheritRestService(c)
 	c.BaseRoute = "v1/beacons"
 	c.openApiFile = "./swagger/beacons_v1.yaml"
 	c.DependencyResolver.Put("controller", crefer.NewDescriptor("pip-services-beacons", "controller", "default", "*", "*"))

@@ -18,9 +18,9 @@ type BeaconsMongoDbPersistence struct {
 
 func NewBeaconsMongoDbPersistence() *BeaconsMongoDbPersistence {
 	proto := reflect.TypeOf(&data.BeaconV1{})
-	bmp := BeaconsMongoDbPersistence{}
-	bmp.IdentifiableMongoDbPersistence = *mngpersist.NewIdentifiableMongoDbPersistence(proto, "beacons")
-	return &bmp
+	c := &BeaconsMongoDbPersistence{}
+	c.IdentifiableMongoDbPersistence = *mngpersist.InheritIdentifiableMongoDbPersistence(c, proto, "beacons")
+	return c
 }
 
 func (c *BeaconsMongoDbPersistence) composeFilter(filter *cdata.FilterParams) interface{} {
@@ -158,7 +158,7 @@ func (c *BeaconsMongoDbPersistence) GetOneByUdi(correlationId string, udi string
 		}
 		return nil, ferr
 	}
-	item := c.ConvertResultToPublic(docPointer, c.Prototype)
+	item := c.ConvertToPublic(docPointer)
 
 	if item != nil {
 		val, _ := item.(*bdata.BeaconV1)

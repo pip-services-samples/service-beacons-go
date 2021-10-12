@@ -1,10 +1,10 @@
 package suite
 
 import (
+	bench "github.com/pip-benchmark/pip-benchmark-go/benchmark"
 	bbuild "github.com/pip-services-samples/pip-services-beacons-go/build"
 	blogic "github.com/pip-services-samples/pip-services-beacons-go/logic"
 	bpersist "github.com/pip-services-samples/pip-services-beacons-go/persistence"
-	bench "github.com/pip-benchmark/pip-benchmark-go/benchmark"
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	crun "github.com/pip-services3-go/pip-services3-commons-go/run"
@@ -31,7 +31,7 @@ func (c *BeaconsBenchmarkContext) Open() error {
 	databaseUser := c.baseContext.GetParameters()["DatabaseUser"].GetAsString()
 	databasePassword := c.baseContext.GetParameters()["DatabasePassword"].GetAsString()
 
-	persistenceDescriptor := cref.NewDescriptor("beacons", "persistence", databaseType, "*", "1.0")
+	persistenceDescriptor := cref.NewDescriptor("pip-services-beacons", "persistence", databaseType, "*", "1.0")
 	instance, err := bbuild.NewBeaconsServiceFactory().Create(persistenceDescriptor)
 	if err != nil {
 		return err
@@ -50,8 +50,8 @@ func (c *BeaconsBenchmarkContext) Open() error {
 	c.Controller.Configure(cconf.NewEmptyConfigParams())
 
 	references := cref.NewReferencesFromTuples(
-		cref.NewDescriptor("beacons", "persistence", databaseType, "default", "1.0"), c.Persistence,
-		cref.NewDescriptor("pip-services-positions", "controller", "default", "default", "1.0"), c.Controller,
+		cref.NewDescriptor("pip-services-beacons", "persistence", databaseType, "default", "1.0"), c.Persistence,
+		cref.NewDescriptor("pip-services-beacons", "controller", "default", "default", "1.0"), c.Controller,
 	)
 	c.Controller.SetReferences(references)
 	return c.Persistence.(crun.IOpenable).Open("")

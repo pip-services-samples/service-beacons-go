@@ -10,9 +10,8 @@ type BeaconsCommandableGrpcServiceV1 struct {
 }
 
 func NewBeaconsCommandableGrpcServiceV1() *BeaconsCommandableGrpcServiceV1 {
-	c := &BeaconsCommandableGrpcServiceV1{
-		CommandableGrpcService: cservices.NewCommandableGrpcService("v1.beacons"),
-	}
+	c := &BeaconsCommandableGrpcServiceV1{}
+	c.CommandableGrpcService = cservices.InheritCommandableGrpcService(c, "v1.beacons")
 	c.DependencyResolver.Put("controller", cref.NewDescriptor("pip-services-beacons", "controller", "*", "*", "1.0"))
 	return c
 }

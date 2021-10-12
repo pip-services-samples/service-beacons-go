@@ -16,9 +16,8 @@ type BeaconsJsonPostgresPersistence struct {
 
 func NewBeaconsJsonPostgresPersistence() *BeaconsJsonPostgresPersistence {
 	proto := reflect.TypeOf(&data1.BeaconV1{})
-	c := &BeaconsJsonPostgresPersistence{
-		IdentifiableJsonPostgresPersistence: *cpersist.NewIdentifiableJsonPostgresPersistence(proto, "beacons_json"),
-	}
+	c := &BeaconsJsonPostgresPersistence{}
+	c.IdentifiableJsonPostgresPersistence = *cpersist.InheritIdentifiableJsonPostgresPersistence(c, proto, "beacons_json")
 	c.EnsureTable("VARCHAR(32)", "JSONB")
 	c.EnsureIndex("beacons_json_site_id", map[string]string{"(data->>'site_id')": "1"}, map[string]string{})
 	return c

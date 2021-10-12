@@ -10,16 +10,15 @@ type BeaconsCommandableHttpServiceV1 struct {
 }
 
 func NewBeaconsCommandableHttpServiceV1() *BeaconsCommandableHttpServiceV1 {
-	c := &BeaconsCommandableHttpServiceV1{
-		CommandableHttpService: cservices.NewCommandableHttpService("v1/beacons"),
-	}
-	c.CommandableHttpService.IRegisterable = c
+	c := &BeaconsCommandableHttpServiceV1{}
+	c.CommandableHttpService = cservices.InheritCommandableHttpService(c, "v1/beacons")
+
 	c.DependencyResolver.Put("controller", cref.NewDescriptor("pip-services-beacons", "controller", "*", "*", "1.0"))
 	return c
 }
 
 func (c *BeaconsCommandableHttpServiceV1) Register() {
-	if !c.SwaggerAuto && c.SwaggerEnable {
+	if !c.SwaggerAuto && c.SwaggerEnabled {
 		c.RegisterOpenApiSpecFromFile("./swagger/beacons_v1.yaml")
 	}
 	c.CommandableHttpService.Register()
